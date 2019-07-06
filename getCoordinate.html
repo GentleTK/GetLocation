@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>经纬坐标</title>
+    <script>
+    window.addEventListener('load', function() {
+        if (navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition(update);
+        }
+    }, false);
+	
+    function update(position) {
+        var lat = position.coords.latitude;
+        var lng = position.coords.longitude;
+		alert('纬度:' + lat + ', 经度:' + lng);
+		//document.write('纬度:' + lat + ', 经度:' + lng);	
+    }
+
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>

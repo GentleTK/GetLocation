@@ -1,0 +1,80 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+        body, html{width: 100%;height: 100%;margin:0;font-family:"微软雅黑";}
+        #allmap{height:100%;width:100%;}
+    </style>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=wgYlWnYQSZ5fN3RdCxYoIF8jT7y1jRLb"></script>
+    <title>定位</title>
+</head>
+<body>
+    <div id="allmap"></div>
+</body>
+</html>
+<script type="text/javascript">
+	var a = 6378245.0; //  a: 卫星椭球坐标投影到平面地图坐标系的投影因子。
+	var ee = 0.00669342162296594323; //  ee: 椭球的偏心率。
+	var x_pi = 3.14159265358979324 * 3000.0 / 180.0;
+	var PI = 3.14159265358979324;
+	window.addEventListener('load', function() {
+        if (navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition(getLocation);
+        }
+    }, false);
+	function transformLat(x, y) {
+        var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+        ret += (20.0 * Math.sin(6.0 * x * this.PI) + 20.0 * Math.sin(2.0 * x * this.PI)) * 2.0 / 3.0;
+        ret += (20.0 * Math.sin(y * this.PI) + 40.0 * Math.sin(y / 3.0 * this.PI)) * 2.0 / 3.0;
+        ret += (160.0 * Math.sin(y / 12.0 * this.PI) + 320 * Math.sin(y * this.PI / 30.0)) * 2.0 / 3.0;
+        return ret;
+    }
+    function transformLon(x, y) {
+        var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+        ret += (20.0 * Math.sin(6.0 * x * this.PI) + 20.0 * Math.sin(2.0 * x * this.PI)) * 2.0 / 3.0;
+        ret += (20.0 * Math.sin(x * this.PI) + 40.0 * Math.sin(x / 3.0 * this.PI)) * 2.0 / 3.0;
+        ret += (150.0 * Math.sin(x / 12.0 * this.PI) + 300.0 * Math.sin(x / 30.0 * this.PI)) * 2.0 / 3.0;
+        return ret;
+    }
+	//WGS-84 to GCJ-02
+	 function wgs2gcj(lat, lon) {
+		var dLat = this.transformLat(lon - 105.0, lat - 35.0);
+        var dLon = this.transformLon(lon - 105.0, lat - 35.0);
+        var radLat = lat / 180.0 * this.PI;
+        var magic = Math.sin(radLat);
+        magic = 1 - ee * magic * magic;
+        var sqrtMagic = Math.sqrt(magic);
+        dLat = (dLat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * this.PI);
+        dLon = (dLon * 180.0) / (a / sqrtMagic * Math.cos(radLat) * this.PI);
+		mgLat = lat + dLat;
+		mgLon = lon + dLon;
+        return {'lat': mgLat, 'lon': mgLon};
+    }
+	//GCJ-02 to BD-09
+     function gcj2bd(gcjLat, gcjLon) {
+        var x = gcjLon, y = gcjLat;
+        var z = Math.sqrt(x * x + y * y) + 0.00002 * Math.sin(y * this.x_pi);
+        var theta = Math.atan2(y, x) + 0.000003 * Math.cos(x * this.x_pi);
+        bdLon = z * Math.cos(theta) + 0.0065;
+        bdLat = z * Math.sin(theta) + 0.006;
+        return {'lat' : bdLat,'lon' : bdLon};
+    }
+	//change wgs to bd
+	function wgs2bd(lat, lon) {
+		var wgs_to_gcj = wgs2gcj(lat, lon);
+		var gcj_to_bd = gcj2bd(wgs_to_gcj.lat, wgs_to_gcj.lon);
+        return {'lat': gcj_to_bd.lat, 'lon': gcj_to_bd.lon};
+    }
+	function getLocation(position) {
+		var location = wgs2bd(position.coords.latitude, position.coords.longitude);
+		var map = new BMap.Map("allmap");
+		map.centerAndZoom(new BMap.Point(116.331398,39.897445),11);
+		map.enableScrollWheelZoom(true);
+		map.clearOverlays();
+		var new_point = new BMap.Point(location.lon, location.lat);
+		var marker = new BMap.Marker(new_point);  // 创建标注
+		map.addOverlay(marker);              // 将标注添加到地图中
+		map.panTo(new_point);      
+    }
+</script>
