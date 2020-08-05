@@ -1,9 +1,10 @@
 # GetLocation
-Get the current location information
+#### 介绍
+网页获取当前坐标信息
 
-## BaiduMapMark
-调用百度地图API获取当前位置信息并标注在地图上
-## getCoordinate
-获取当前经纬度坐标
-## getLocation
-将获取到的经纬度经过wgs-bd转换后的坐标标注在地图上
+#### 软件架构
+文件名|内容说明
+:-:|:-:
+BaiduMapMark.html|获取位置信息并标注
+getCoordinate.html|获取经纬度坐标
+getLocation.html|获取标注
